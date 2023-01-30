@@ -4,7 +4,8 @@ import discord
 
 from files import serve_file, delete_file
 from pytube_frontend.downloader import Downloader
-from pytube_frontend.video_info import get_title, get_resolutions
+from pytube_frontend.video_info import get_title, get_resolutions_streams
+from pytube_frontend.streams import get_streams
 from integrations.YouTube.config import storagePath, statusMessaging
 from asyncio import TimeoutError
 
@@ -24,7 +25,7 @@ async def process_download_command(message, client):
     elif message.content.startswith('!download-video-only'):
         await perform_operation(message, 'video-only', client)
     elif message.content.startswith('!download-video'):
-        pass
+        await perform_operation(message, 'video', client)
     else:
         await message.reply('You must specify what type of copy you would like.\t'
                                    '-\tEX: "!download-video [YouTube URL]"')
@@ -35,24 +36,37 @@ async def perform_operation(message, format, client=None):
         url = extract_url(message.content)
         url = verify_url(url)
 
-
         match format:
             case 'audio':
                 status = await message.reply("Downloading **" + get_title(url) + "** as **.mp3**")
+                streams = get_streams(url)
                 observer = Observer(status)
                 downloader = Downloader(observer)
-                filepath = await downloader.get_audio_copy(url, storagePath)
+                filepath = await downloader.get_audio_copy(None, streams, storagePath)
                 await serve_file(status, filepath)
 
             case 'video-only':
                 menu = await message.reply("Determining available resolutions...")
-                resolution = await select_resolution(client, message, menu, url)
+                streams = get_streams(url)
+                resolution = await select_resolution(client, message, menu, streams)
                 status = menu
                 observer = Observer(status)
                 downloader = Downloader(observer)
                 if resolution is not None:
                     await menu.edit("Downloading **" + get_title(url) + "** as **.mp4** in **" + resolution + "**...")
-                    filepath = await downloader.get_video_only_copy(url, resolution, True, storagePath)
+                    filepath = await downloader.get_video_only_copy(None, streams, resolution, True, storagePath)
+                    await serve_file(status, filepath)
+
+            case 'video':
+                menu = await message.reply("Determining available resolutions...")
+                streams = get_streams(url)
+                resolution = await select_resolution(client, message, menu, streams)
+                status = menu
+                observer = Observer(status)
+                downloader = Downloader(observer)
+                if resolution is not None:
+                    await menu.edit("Downloading **" + get_title(url) + "** as **.mp4** in **" + resolution + "**...")
+                    filepath = await downloader.get_video_copy(None, streams, resolution, True, storagePath)
                     await serve_file(status, filepath)
 
 
@@ -81,8 +95,8 @@ def verify_url(url):
     except Exception:
         raise InvalidURLException
 
-async def select_resolution(client, message, menu, url):
-    resolutions = get_resolutions(url)
+async def select_resolution(client, message, menu, streams):
+    resolutions = get_resolutions_streams(streams)
     emoji_number_map = {f"{1}\u20e3": 1, f"{2}\u20e3": 2, f"{3}\u20e3": 3, f"{4}\u20e3": 4, f"{5}\u20e3": 5,
                         f"{6}\u20e3": 6, f"{7}\u20e3": 7, f"{8}\u20e3": 8, f"{9}\u20e3": 9, f"{10}\u20e3": 10}
     await menu.edit(f"What resolution do you like?\n"
@@ -142,7 +156,7 @@ class Observer:
 
     async def stitch_commence(self):
         if statusMessaging["stitchCommence"]:
-            await self.status.edit("Stitch commencing...")
+            await self.status.edit("Stitch commencing. This might take a while...")
 
     async def stitch_complete(self):
         if statusMessaging["stitchComplete"]:
