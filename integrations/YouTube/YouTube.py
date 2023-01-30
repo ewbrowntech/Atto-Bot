@@ -1,12 +1,11 @@
-import re
-
-import discord
-
 from files import serve_file, delete_file
 from pytube_frontend.downloader import Downloader
 from pytube_frontend.video_info import get_title, get_resolutions_streams
 from pytube_frontend.streams import get_streams
-from integrations.YouTube.config import storagePath, statusMessaging
+from integrations.YouTube.config import storagePath
+from integrations.YouTube.Observer import Observer
+from integrations.YouTube.Errors import URLNotFoundException, InvalidURLException
+from integrations.YouTube.url import extract_url, verify_url
 from asyncio import TimeoutError
 
 '''
@@ -39,7 +38,11 @@ async def perform_operation(message, format, client=None):
         match format:
             case 'audio':
                 status = await message.reply("Downloading **" + get_title(url) + "** as **.mp3**")
-                streams = get_streams(url)
+                try:
+                    streams = get_streams(url)
+                except KeyError:
+                    await status.edit("I'm sorry, but this video is Age-Restricted.")
+                    return
                 observer = Observer(status)
                 downloader = Downloader(observer)
                 filepath = await downloader.get_audio_copy(None, streams, storagePath)
@@ -47,7 +50,11 @@ async def perform_operation(message, format, client=None):
 
             case 'video-only':
                 menu = await message.reply("Determining available resolutions...")
-                streams = get_streams(url)
+                try:
+                    streams = get_streams(url)
+                except KeyError:
+                    await menu.edit("I'm sorry, but this video is Age-Restricted.")
+                    return
                 resolution = await select_resolution(client, message, menu, streams)
                 status = menu
                 observer = Observer(status)
@@ -59,7 +66,11 @@ async def perform_operation(message, format, client=None):
 
             case 'video':
                 menu = await message.reply("Determining available resolutions...")
-                streams = get_streams(url)
+                try:
+                    streams = get_streams(url)
+                except KeyError:
+                    await menu.edit("I'm sorry, but this video is Age-Restricted.")
+                    return
                 resolution = await select_resolution(client, message, menu, streams)
                 status = menu
                 observer = Observer(status)
@@ -76,24 +87,6 @@ async def perform_operation(message, format, client=None):
     except InvalidURLException:
         await message.reply("The specified video either does not exist, is private, or is otherwise available")
         return
-
-# Extract a URL from a message
-def extract_url(messageContents):
-    match = re.search(r'https://www.youtube.com/\S+|https://youtu.be/\S+', messageContents)
-    if match:
-        url = match.group(0)
-        return url
-    else:
-        raise URLNotFoundException
-
-
-# Check to see if URL corresponds to an available YouTube video
-def verify_url(url):
-    try:
-        title = get_title(url)  # Attempting to get the title of an unavailable YouTube video will cause an exception
-        return url
-    except Exception:
-        raise InvalidURLException
 
 async def select_resolution(client, message, menu, streams):
     resolutions = get_resolutions_streams(streams)
@@ -125,49 +118,3 @@ async def select_resolution(client, message, menu, streams):
         # Get the selected option by looking at the emoji in the reaction
         await menu.clear_reactions()
         return resolutions[emoji_number_map[reaction.emoji] - 1]
-
-class Observer:
-    def __init__(self, status):
-        self.status = status
-
-    async def audio_download_commence(self):
-        if statusMessaging["audioCommence"]:
-            await self.status.edit("Audio download commencing...")
-
-    async def audio_download_complete(self):
-        if statusMessaging["audioComplete"]:
-            await self.status.edit("Audio download complete.")
-
-    async def video_download_commence(self):
-        if statusMessaging["videoCommence"]:
-            await self.status.edit("Video download commencing...")
-
-    async def video_download_complete(self):
-        if statusMessaging["videoComplete"]:
-            await self.status.edit("Video download complete.")
-
-    async def transcode_commence(self):
-        if statusMessaging["transcodeCommence"]:
-            await self.status.edit("Transcode commencing...")
-
-    async def transcode_complete(self):
-        if statusMessaging["transcodeComplete"]:
-            await self.status.edit("Transcode complete.")
-
-    async def stitch_commence(self):
-        if statusMessaging["stitchCommence"]:
-            await self.status.edit("Stitch commencing. This might take a while...")
-
-    async def stitch_complete(self):
-        if statusMessaging["stitchComplete"]:
-            await self.status.edit("Stitch complete.")
-
-
-class URLNotFoundException(Exception):
-    """Raised when a message does not contain a YouTube URL"""
-    pass
-
-
-class InvalidURLException(Exception):
-    """Raised when a URL does not link to an available YouTube video"""
-    pass
