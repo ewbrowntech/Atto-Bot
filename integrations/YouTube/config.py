@@ -1,4 +1,11 @@
 import os
+'''
+config.py
+
+@Author - Ethan Brown - ewbrowntech@gmail.com
+@Version - 30 JAN 23
+
+Configurations used by the Atto-Bot YouTube integration'''
 
 storagePath = os.path.join(os.getcwd(), "storage")
 statusMessaging = {

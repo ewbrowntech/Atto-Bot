@@ -12,11 +12,12 @@ from asyncio import TimeoutError
 YouTube.py
 
 @Author - Ethan Brown - ewbrowntech@gmail.com
-@Version - 29 JAN 23
+@Version - 30 JAN 23
 
 Download YouTube videos via PyTube-Frontend
 '''
 
+# Determine requested form of media
 async def process_download_command(message, client):
     # Determine what form of copy the user would like
     if message.content.startswith('!download-audio'):
@@ -30,6 +31,7 @@ async def process_download_command(message, client):
                                    '-\tEX: "!download-video [YouTube URL]"')
         return
 
+# Verify, download, and serve requested media
 async def perform_operation(message, format, client=None):
     try:
         url = extract_url(message.content)
@@ -47,6 +49,7 @@ async def perform_operation(message, format, client=None):
                 downloader = Downloader(observer)
                 filepath = await downloader.get_audio_copy(None, streams, storagePath)
                 await serve_file(status, filepath)
+                delete_file(filepath)
 
             case 'video-only':
                 menu = await message.reply("Determining available resolutions...")
@@ -63,6 +66,7 @@ async def perform_operation(message, format, client=None):
                     await menu.edit("Downloading **" + get_title(url) + "** as **.mp4** in **" + resolution + "**...")
                     filepath = await downloader.get_video_only_copy(None, streams, resolution, True, storagePath)
                     await serve_file(status, filepath)
+                    delete_file(filepath)
 
             case 'video':
                 menu = await message.reply("Determining available resolutions...")
@@ -79,6 +83,7 @@ async def perform_operation(message, format, client=None):
                     await menu.edit("Downloading **" + get_title(url) + "** as **.mp4** in **" + resolution + "**...")
                     filepath = await downloader.get_video_copy(None, streams, resolution, True, storagePath)
                     await serve_file(status, filepath)
+                    delete_file(filepath)
 
 
     except URLNotFoundException:
@@ -88,6 +93,7 @@ async def perform_operation(message, format, client=None):
         await message.reply("The specified video either does not exist, is private, or is otherwise available")
         return
 
+# List available video resolutions and allow user to pick from them
 async def select_resolution(client, message, menu, streams):
     resolutions = get_resolutions_streams(streams)
     emoji_number_map = {f"{1}\u20e3": 1, f"{2}\u20e3": 2, f"{3}\u20e3": 3, f"{4}\u20e3": 4, f"{5}\u20e3": 5,
@@ -109,10 +115,9 @@ async def select_resolution(client, message, menu, streams):
         # Wait for the user to click a reaction
         reaction, user = await client.wait_for('reaction_add', check=check, timeout=30.0)
     except TimeoutError:
-        # Handle the timeout error
+        # Case: no selection was made during timeout period
         pass
     except KeyError:
-        # Handle the Key
         pass
     else:
         # Get the selected option by looking at the emoji in the reaction

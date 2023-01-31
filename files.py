@@ -1,5 +1,13 @@
 import os
 import discord
+'''
+files.py
+
+@Author - Ethan Brown - ewbrowntech@gmail.com
+@Version - 29 JAN 23
+
+Manage the storage and serving of files used by Atto-Bot
+'''
 
 async def serve_file(status, filepath):
     server = status.channel.guild

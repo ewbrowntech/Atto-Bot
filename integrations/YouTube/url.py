@@ -1,6 +1,16 @@
 import re
 from integrations.YouTube.Errors import URLNotFoundException, InvalidURLException
 from pytube_frontend.video_info import get_title
+'''
+url.py
+
+@Author - Ethan Brown - ewbrowntech@gmail.com
+@Version - 29 JAN 23
+
+Extract a url from a message and verify that it is a YouTube video
+'''
+
+
 # Extract a URL from a message
 def extract_url(messageContents):
     match = re.search(r'https://www.youtube.com/\S+|https://youtu.be/\S+', messageContents)
