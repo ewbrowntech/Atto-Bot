@@ -1,7 +1,7 @@
 import discord
 # import importlib
 from integrations.YouTube.YouTube import process_download_command
-# atto = importlib.import_module("Atto-API")
+# atto = importlib.import_module("AttoAPI")
 # atto.main.process_commands()
 
 
@@ -21,8 +21,6 @@ class AttoBotClient(discord.Client):
             await detect_commands(message)
 
 
-
-
 # Parse messages and handle any commands present
 async def detect_commands(message):
     if message.content.startswith('!hello'):
@@ -32,7 +30,7 @@ async def detect_commands(message):
 
 
 # Get Discord bot token from file
-with open('tokens/discord-token', 'r') as file:
+with open('config/tokens/discord-token', 'r') as file:
     token = file.read()
 
 

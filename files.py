@@ -1,5 +1,6 @@
 import os
 import discord
+from integrations.Atto.Atto import upload_file
 '''
 files.py
 
@@ -14,9 +15,12 @@ async def serve_file(status, filepath):
     uploadLimit = server.filesize_limit# The maximum file upload size in bytes
     filesize = os.stat(filepath).st_size
     if not filesize > uploadLimit:
-        await status.edit("Here you go!", file=discord.File(filepath))
+        # await status.edit("Here you go!", file=discord.File(filepath))
+        url = upload_file(filepath)
+        await status.edit("File uploaded to AttoHost: " + url)
     else:
-        await status.edit("File is too big! Uploading to AttoHost...")
+        url = upload_file(filepath)
+        await status.edit("File uploaded to AttoHost: " + url)
 
 def delete_file(filepath):
     os.remove(filepath)
