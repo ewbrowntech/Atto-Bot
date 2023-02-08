@@ -43,7 +43,7 @@ async def perform_operation(message, format, client=None):
                 try:
                     streams = get_streams(url)
                 except KeyError:
-                    await status.edit("I'm sorry, but this video is Age-Restricted.")
+                    await status.edit(content="I'm sorry, but this video is Age-Restricted.")
                     return
                 observer = Observer(status)
                 downloader = Downloader(observer)
@@ -56,14 +56,14 @@ async def perform_operation(message, format, client=None):
                 try:
                     streams = get_streams(url)
                 except KeyError:
-                    await menu.edit("I'm sorry, but this video is Age-Restricted.")
+                    await menu.edit(content="I'm sorry, but this video is Age-Restricted.")
                     return
                 resolution = await select_resolution(client, message, menu, streams)
                 status = menu
                 observer = Observer(status)
                 downloader = Downloader(observer)
                 if resolution is not None:
-                    await menu.edit("Downloading **" + get_title(url) + "** as **.mp4** in **" + resolution + "**...")
+                    await menu.edit(content="Downloading **" + get_title(url) + "** as **.mp4** in **" + resolution + "**...")
                     filepath = await downloader.get_video_only_copy(None, streams, resolution, True, storagePath)
                     await serve_file(status, filepath)
                     delete_file(filepath)
@@ -73,14 +73,14 @@ async def perform_operation(message, format, client=None):
                 try:
                     streams = get_streams(url)
                 except KeyError:
-                    await menu.edit("I'm sorry, but this video is Age-Restricted.")
+                    await menu.edit(content="I'm sorry, but this video is Age-Restricted.")
                     return
                 resolution = await select_resolution(client, message, menu, streams)
                 status = menu
                 observer = Observer(status)
                 downloader = Downloader(observer)
                 if resolution is not None:
-                    await menu.edit("Downloading **" + get_title(url) + "** as **.mp4** in **" + resolution + "**...")
+                    await menu.edit(content="Downloading **" + get_title(url) + "** as **.mp4** in **" + resolution + "**...")
                     filepath = await downloader.get_video_copy(None, streams, resolution, True, storagePath)
                     await serve_file(status, filepath)
                     delete_file(filepath)
@@ -98,7 +98,7 @@ async def select_resolution(client, message, menu, streams):
     resolutions = get_resolutions_streams(streams)
     emoji_number_map = {f"{1}\u20e3": 1, f"{2}\u20e3": 2, f"{3}\u20e3": 3, f"{4}\u20e3": 4, f"{5}\u20e3": 5,
                         f"{6}\u20e3": 6, f"{7}\u20e3": 7, f"{8}\u20e3": 8, f"{9}\u20e3": 9, f"{10}\u20e3": 10}
-    await menu.edit(f"What resolution do you like?\n"
+    await menu.edit(content=f"What resolution do you like?\n"
                     + "   ".join([f"{index + 1}) {res}" for index, res in enumerate(resolutions)]))
     for i in range(len(resolutions)):
         await menu.add_reaction(f"{i + 1}\u20e3")

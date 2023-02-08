@@ -15,10 +15,7 @@ async def serve_file(status, filepath):
     uploadLimit = server.filesize_limit  # The maximum file upload size in bytes
     filesize = os.stat(filepath).st_size
     if not filesize > uploadLimit:
-        # await status.edit("Here you go!", file=discord.File(filepath))
-        url = upload_file(filepath)
-        await status.edit("This file is too big for Discord, so I uploaded it to AttoHost!\n"
-                          + get_atto_addresses()["download"] + url)
+        await status.edit("Here you go!", file=discord.File(filepath))
     else:
         url = upload_file(filepath)
         await status.edit("This file is too big for Discord, so I uploaded it to AttoHost!\n"

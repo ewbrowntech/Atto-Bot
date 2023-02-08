@@ -15,32 +15,32 @@ class Observer:
 
     async def audio_download_commence(self):
         if statusMessaging["audioCommence"]:
-            await self.status.edit("Downloading audio stream...")
+            await self.status.edit(content="Downloading audio stream...")
 
     async def audio_download_complete(self):
         if statusMessaging["audioComplete"]:
-            await self.status.edit("Audio download complete.")
+            await self.status.edit(content="Audio download complete.")
 
     async def video_download_commence(self):
         if statusMessaging["videoCommence"]:
-            await self.status.edit("Downloading video stream...")
+            await self.status.edit(content="Downloading video stream...")
 
     async def video_download_complete(self):
         if statusMessaging["videoComplete"]:
-            await self.status.edit("Video download complete.")
+            await self.status.edit(content="Video download complete.")
 
     async def transcode_commence(self):
         if statusMessaging["transcodeCommence"]:
-            await self.status.edit("Transcoding video stream...")
+            await self.status.edit(content="Transcoding video stream...")
 
     async def transcode_complete(self):
         if statusMessaging["transcodeComplete"]:
-            await self.status.edit("Transcode complete.")
+            await self.status.edit(content="Transcode complete.")
 
     async def stitch_commence(self):
         if statusMessaging["stitchCommence"]:
-            await self.status.edit("Stitch commencing. This might take a while...")
+            await self.status.edit(content="Stitch commencing. This might take a while...")
 
     async def stitch_complete(self):
         if statusMessaging["stitchComplete"]:
-            await self.status.edit("Stitch complete.")
+            await self.status.edit(content="Stitch complete.")
